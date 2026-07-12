@@ -1,0 +1,361 @@
+﻿# encoding: utf-8
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
+html = '''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>应用心理硕士 · 备考学习管理系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#4F46E5;--primary-light:#818CF8;--primary-bg:#EEF2FF;--success:#10B981;--warning:#F59E0B;--danger:#EF4444;--gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-500:#6B7280;--gray-700:#374151;--gray-900:#111827}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--gray-50);color:var(--gray-900);line-height:1.6;padding-bottom:80px}
+.app-header{background:linear-gradient(135deg,var(--primary),#7C3AED);color:white;padding:24px 16px 20px;position:sticky;top:0;z-index:10}
+.app-header h1{font-size:20px;font-weight:700}
+.app-header .subtitle{font-size:13px;opacity:0.85;margin-top:4px}
+.app-header .countdown{margin-top:10px;background:rgba(255,255,255,0.15);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;font-size:14px}
+.tab-bar{display:flex;background:white;border-bottom:1px solid var(--gray-200);position:sticky;top:108px;z-index:9}
+.tab-btn{flex:1;text-align:center;padding:12px 8px;font-size:14px;font-weight:500;color:var(--gray-500);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.content{padding:16px;max-width:600px;margin:0 auto}
+.section{display:none}
+.section.active{display:block}
+.card{background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;margin-bottom:12px}
+.card-title{font-size:15px;font-weight:600;color:var(--gray-900);margin-bottom:8px}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px;margin-left:6px}
+.badge-blue{background:var(--primary-bg);color:var(--primary)}
+.badge-green{background:#D1FAE5;color:#065F46}
+.badge-yellow{background:#FEF3C7;color:#92400E}
+.badge-red{background:#FEE2E2;color:#991B1B}
+.progress-bar{height:6px;background:var(--gray-200);border-radius:3px;margin:8px 0;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width 0.5s ease}
+.progress-text{font-size:13px;color:var(--gray-500)}
+.task-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-100)}
+.task-check{width:20px;height:20px;border:2px solid var(--gray-300);border-radius:50%;flex-shrink:0;cursor:pointer;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.task-check:hover{border-color:var(--primary)}
+.task-check.done{background:var(--success);border-color:var(--success);color:white;font-size:14px;font-weight:bold}
+.task-info{flex:1}
+.task-name{font-size:14px;color:var(--gray-700)}
+.task-name.done{text-decoration:line-through;color:var(--gray-300)}
+.task-desc{font-size:12px;color:var(--gray-500);margin-top:2px}
+.phase-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.phase-title{font-size:16px;font-weight:700;color:var(--gray-900)}
+.phase-dates{font-size:13px;color:var(--gray-500)}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.stat-box{background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:14px 12px;text-align:center}
+.stat-num{font-size:22px;font-weight:700;color:var(--primary)}
+.stat-label{font-size:12px;color:var(--gray-500);margin-top:2px}
+.review-date{font-size:13px;color:var(--gray-500);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--gray-200)}
+.review-item{padding:8px 0;display:flex;justify-content:space-between;align-items:center}
+.review-rating{display:flex;gap:4px}
+.emoji-btn{font-size:20px;cursor:pointer;opacity:0.3;transition:opacity 0.2s;padding:2px}
+.emoji-btn.active{opacity:1}
+.info-box{background:var(--primary-bg);border-radius:12px;padding:14px;margin-bottom:12px;font-size:13px;line-height:1.8}
+.info-box strong{color:var(--primary)}
+.resource-list{list-style:none}
+.resource-list li{padding:10px 0;border-bottom:1px solid var(--gray-100);font-size:14px}
+.resource-list .book-title{font-weight:600}
+.resource-list .book-author{color:var(--gray-500);font-size:13px}
+.save-indicator{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--gray-900);color:white;padding:8px 16px;border-radius:20px;font-size:13px;opacity:0;transition:opacity 0.3s;z-index:100;pointer-events:none}
+.save-indicator.show{opacity:1}
+.btn-reset{display:block;width:100%;padding:10px;background:var(--gray-100);border:none;border-radius:8px;color:var(--gray-500);font-size:13px;cursor:pointer;margin-top:8px}
+.btn-reset:hover{background:var(--gray-200)}
+.notes-area{width:100%;border:1px solid var(--gray-200);border-radius:8px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;min-height:60px;margin-top:8px;outline:none}
+.notes-area:focus{border-color:var(--primary)}
+.btn-primary{padding:8px 20px;background:var(--primary);color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer}
+.btn-primary:hover{background:var(--primary-light)}
+.btn-icon{width:28px;height:28px;border:1px solid var(--gray-200);border-radius:50%;background:white;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.btn-icon:hover{border-color:var(--primary);color:var(--primary)}
+.week-chart{display:flex;gap:4px;justify-content:space-between}
+.week-bar-wrap{flex:1;text-align:center}
+.week-bar-label{font-size:11px;color:var(--gray-500)}
+.week-bar-graph{margin:4px 0;height:40px;background:var(--gray-100);border-radius:4px;position:relative;overflow:hidden}
+.week-bar-fill{position:absolute;bottom:0;width:100%;background:var(--primary);border-radius:4px;transition:height 0.3s}
+.week-bar-hours{font-size:12px;font-weight:600}
+.week-bar-subjects{font-size:10px;color:var(--gray-500)}
+</style></head><body>
+<div class="app-header">
+<h1>应用心理硕士 · 备考系统</h1>
+<div class="subtitle">西南交通大学 · 045400 应用心理（全日制/非全日制）</div>
+<div class="countdown" id="countdown">距2027考研还有 <strong id="daysLeft">--</strong> 天</div>
+</div>
+<div class="tab-bar">
+<button class="tab-btn active" data-tab="plan">复习计划</button>
+<button class="tab-btn" data-tab="progress">进度追踪</button>
+<button class="tab-btn" data-tab="review">学习回顾</button>
+<button class="tab-btn" data-tab="info">考试信息</button>
+</div>
+<div class="content">
+<div class="section active" id="tab-plan">
+<div class="stats-row"><div class="stat-box"><div class="stat-num" id="statTotal">0</div><div class="stat-label">总任务</div></div><div class="stat-box"><div class="stat-num" id="statDone">0</div><div class="stat-label">已完成</div></div><div class="stat-box"><div class="stat-num" id="statPct">0%</div><div class="stat-label">完成率</div></div></div>
+<div id="planContent"></div>
+<button class="btn-reset" onclick="resetAll()">重置所有进度</button>
+</div>
+<div class="section" id="tab-progress">
+<div class="card"><div class="card-title">总体进度</div><div style="display:flex;align-items:center;gap:12px"><div style="flex:1"><div class="progress-bar"><div class="progress-fill" id="overallBar" style="width:0%;background:var(--primary)"></div></div></div><span class="progress-text" id="overallPct">0%</span></div></div>
+<div class="card" id="phaseProgressCards"></div>
+<div class="card"><div class="card-title">备考笔记</div><textarea class="notes-area" id="notesArea" placeholder="记录学习心得、重点难点、疑问..."></textarea></div>
+</div>
+<div class="section" id="tab-review">
+<div class="card"><div class="card-title">每日回顾</div><div class="review-date" id="todayDate"></div><div id="dailyReview"></div></div>
+<div class="card"><div class="card-title">本周复习统计</div><div id="weekStats"></div></div>
+</div>
+<div class="section" id="tab-info">
+<div class="info-box"><strong>西南交通大学 · 心理研究与咨询中心</strong><br>专业代码：<strong>045400 应用心理</strong><br>全日制 27人（含推免4人）| 非全日制 20人</div>
+<div class="card"><div class="card-title">考试科目</div><ul class="resource-list"><li><span class="book-title">101 思想政治理论</span><br><span class="book-author">全国统考 · 满分100分</span></li><li><span class="book-title">204 英语（二）</span><br><span class="book-author">全国统考 · 满分100分</span></li><li><span class="book-title">347 心理学专业综合</span><br><span class="book-author">学校自命题 · 满分300分</span></li></ul></div>
+<div class="card"><div class="card-title">347参考书目</div><ul class="resource-list"><li><span class="book-title">《心理学导论》第三版</span><br><span class="book-author">黄希庭 著，人民教育出版社，2015</span></li><li><span class="book-title">《发展心理学》第三版</span><br><span class="book-author">林崇德 著，人民教育出版社，2018</span></li><li><span class="book-title">《心理与教育研究方法》第二版</span><br><span class="book-author">董奇 著，北京师范大学出版社，2019</span></li></ul></div>
+<div class="card"><div class="card-title">研究方向</div><ul class="resource-list"><li>心理健康与大数据应用</li><li>临床与咨询心理</li><li>人机交互与用户体验</li></ul></div>
+<div class="card"><div class="card-title">重要链接</div><ul class="resource-list"><li><a href="https://yz.swjtu.edu.cn" target="_blank" style="color:var(--primary);text-decoration:none">西南交大研究生招生网</a></li><li><a href="https://yz.chsi.com.cn" target="_blank" style="color:var(--primary);text-decoration:none">中国研究生招生信息网</a></li></ul></div>
+</div>
+</div>
+<div class="save-indicator" id="saveIndicator">已自动保存</div>
+<script>
+var PHASES = [
+  {id:"p1",title:"第一阶段 · 基础夯实",dates:"7月12日 - 8月31日",tasks:[
+    {id:"p1_1",name:"政治：完成马原、毛中特第一轮听课",desc:"徐涛/腿姐强化班，同步做笔记"},
+    {id:"p1_2",name:"政治：完成1000题马原部分",desc:"每天30题，错题标记"},
+    {id:"p1_3",name:"英语：考研核心词一轮背默完成",desc:"墨墨背单词/不背单词，每天100词"},
+    {id:"p1_4",name:"英语：长难句分析训练",desc:"田静/何凯文长难句，每天5句"},
+    {id:"p1_5",name:"英语：2010-2014年阅读真题精做",desc:"每篇精读，分析错题"},
+    {id:"p1_6",name:"347：心理学导论通读完第一遍",desc:"黄希庭版，做章节框架笔记"},
+    {id:"p1_7",name:"347：发展心理学通读完第一遍",desc:"林崇德版，做章节框架笔记"},
+    {id:"p1_8",name:"347：心理与教育研究方法通读完第一遍",desc:"董奇版，理解研究方法论"},
+    {id:"p1_9",name:"政治：史纲第一轮听课+1000题",desc:"马原完成后转入史纲"}
+  ]},
+  {id:"p2",title:"第二阶段 · 强化提升",dates:"9月1日 - 10月31日",tasks:[
+    {id:"p2_1",name:"政治：完成史纲、思修、当代第一轮",desc:"听课+1000题对应部分"},
+    {id:"p2_2",name:"政治：1000题二刷错题",desc:"重点关注一刷错题"},
+    {id:"p2_3",name:"英语：考研核心词二轮巩固",desc:"每天100词，重点记忆生词"},
+    {id:"p2_4",name:"英语：2015-2019年阅读真题精做",desc:"限时训练，每篇15-20分钟"},
+    {id:"p2_5",name:"英语：完形+翻译+新题型专项训练",desc:"每周各2篇"},
+    {id:"p2_6",name:"347：三本教材二轮复习",desc:"整理背诵笔记，建立知识体系"},
+    {id:"p2_7",name:"347：核心知识点一轮背诵",desc:"每天2章，利用艾宾浩斯表格"},
+    {id:"p2_8",name:"347：收集历年347真题",desc:"分析题型、考点分布"}
+  ]},
+  {id:"p3",title:"第三阶段 · 冲刺模拟",dates:"11月1日 - 12月考前",tasks:[
+    {id:"p3_1",name:"政治：肖秀荣八套卷选择题",desc:"限时做，错题回归知识点"},
+    {id:"p3_2",name:"政治：肖秀荣四套卷全真模拟",desc:"大题背诵，每天2-3题"},
+    {id:"p3_3",name:"政治：时政热点整理背诵",desc:"关注年度重大事件"},
+    {id:"p3_4",name:"英语：2020-2025年真题全真模拟",desc:"严格计时，模拟考试环境"},
+    {id:"p3_5",name:"英语：作文模板整理与背诵",desc:"大作文+小作文各5篇模板"},
+    {id:"p3_6",name:"347：二轮知识点背诵",desc:"查漏补缺，重点突破薄弱章节"},
+    {id:"p3_7",name:"347：全真模拟考试至少3次",desc:"限时3小时，模拟答题卡"},
+    {id:"p3_8",name:"347：三轮快速回顾",desc:"框架式复习，保持状态"},
+    {id:"p3_9",name:"全科：考前一周调整状态",desc:"轻复习，调整作息"}
+  ]}
+];
+var state = null;
+function getDefaultState() {
+  var s = {tasks:{},notes:"",reviews:[]};
+  for (var i=0;i<PHASES.length;i++) {for (var j=0;j<PHASES[i].tasks.length;j++) {s.tasks[PHASES[i].tasks[j].id] = false;}}
+  return s;
+}
+function loadState() {
+  try {
+    var raw = localStorage.getItem("psych_study_planner");
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      for (var i=0;i<PHASES.length;i++) {for (var j=0;j<PHASES[i].tasks.length;j++) {if (parsed.tasks[PHASES[i].tasks[j].id] === undefined) {parsed.tasks[PHASES[i].tasks[j].id] = false;}}}
+      return parsed;
+    }
+  } catch(e){}
+  return getDefaultState();
+}
+function saveState() {
+  try {
+    localStorage.setItem("psych_study_planner", JSON.stringify(state));
+    var ind = document.getElementById("saveIndicator");
+    ind.classList.add("show");
+    setTimeout(function(){ind.classList.remove("show");}, 1500);
+  } catch(e){}
+}
+function updateCountdown() {
+  var exam = new Date(2026, 11, 21);
+  var today = new Date();
+  var diff = Math.ceil((exam - today) / (1000 * 60 * 60 * 24));
+  document.getElementById("daysLeft").textContent = diff > 0 ? diff : "已考试";
+}
+function toggleTask(id) {
+  state.tasks[id] = !state.tasks[id];
+  saveState();
+  renderPlan();
+  if (document.getElementById("tab-progress").classList.contains("active")) renderProgress();
+}
+function calcOverall() {
+  var total = 0, done = 0;
+  for (var i=0;i<PHASES.length;i++) {for (var j=0;j<PHASES[i].tasks.length;j++) {total++;if (state.tasks[PHASES[i].tasks[j].id]) done++;}}
+  return total ? Math.round(done/total*100) : 0;
+}
+function renderPlan() {
+  var container = document.getElementById("planContent");
+  var total = 0, done = 0;
+  var html = "";
+  for (var i=0;i<PHASES.length;i++) {
+    var p = PHASES[i];
+    var phaseDone = 0;
+    var tasksHtml = "";
+    for (var j=0;j<p.tasks.length;j++) {
+      var t = p.tasks[j];
+      total++;
+      var isDone = state.tasks[t.id];
+      if (isDone) { done++; phaseDone++; }
+      var checkClass = isDone ? " task-check done" : " task-check";
+      var nameClass = isDone ? " task-name done" : " task-name";
+      var checkMark = isDone ? "\\u2713" : "";
+      tasksHtml += "<div class=\\"task-item\\"><div class=\\"" + checkClass + "\\" onclick=\\"toggleTask('" + t.id + "')\\">" + checkMark + "</div><div class=\\"task-info\\"><div class=\\"" + nameClass + "\\">" + t.name + "</div><div class=\\"task-desc\\">" + t.desc + "</div></div></div>";
+    }
+    var pct = p.tasks.length ? Math.round(phaseDone/p.tasks.length*100) : 0;
+    var badgeClass = pct === 100 ? "badge-green" : (pct > 50 ? "badge-blue" : (pct > 0 ? "badge-yellow" : "badge-red"));
+    var barColor = pct === 100 ? "var(--success)" : "var(--primary)";
+    html += "<div class=\\"card\\"><div class=\\"phase-header\\"><div><div class=\\"phase-title\\">" + p.title + "</div><div class=\\"phase-dates\\">" + p.dates + "</div></div><span class=\\"badge " + badgeClass + "\\">" + pct + "%</span></div><div class=\\"progress-bar\\"><div class=\\"progress-fill\\" style=\\"width:" + pct + "%;background:" + barColor + ";\\"></div></div>" + tasksHtml + "</div>";
+  }
+  container.innerHTML = html;
+  document.getElementById("statTotal").textContent = total;
+  document.getElementById("statDone").textContent = done;
+  document.getElementById("statPct").textContent = total ? Math.round(done/total*100) + "%" : "0%";
+}
+function renderProgress() {
+  var pct = calcOverall();
+  document.getElementById("overallBar").style.width = pct + "%";
+  document.getElementById("overallPct").textContent = pct + "%";
+  var html = "";
+  for (var i=0;i<PHASES.length;i++) {
+    var p = PHASES[i];
+    var phaseDone = 0;
+    for (var j=0;j<p.tasks.length;j++) {if (state.tasks[p.tasks[j].id]) phaseDone++;}
+    var phasePct = p.tasks.length ? Math.round(phaseDone/p.tasks.length*100) : 0;
+    var barColor = phasePct === 100 ? "var(--success)" : "var(--primary)";
+    html += "<div style=\\"margin-bottom:12px\\"><div style=\\"display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px\\"><span>" + p.title + "</span><span style=\\"font-weight:600\\">" + phaseDone + "/" + p.tasks.length + "</span></div><div class=\\"progress-bar\\"><div class=\\"progress-fill\\" style=\\"width:" + phasePct + "%;background:" + barColor + ";\\"></div></div></div>";
+  }
+  document.getElementById("phaseProgressCards").innerHTML = html;
+  document.getElementById("notesArea").value = state.notes || "";
+}
+function renderReview() {
+  var today = new Date();
+  var dateStr = today.toLocaleDateString("zh-CN", {year:"numeric",month:"long",day:"numeric",weekday:"long"});
+  document.getElementById("todayDate").textContent = "" + dateStr;
+  var subjects = [{id:"politics",name:"思想政治"},{id:"english",name:"英语（二）"},{id:"psych347",name:"347心理学专业综合"}];
+  var todayKey = today.toISOString().split("T")[0];
+  var todayReview = null;
+  for (var i=0;i<state.reviews.length;i++) {if (state.reviews[i].date === todayKey) { todayReview = state.reviews[i]; break; }}
+  var html = "<div style=\\"font-size:14px;color:var(--gray-500);margin-bottom:8px\\">今天各科学习状态</div>";
+  var emojis = ["\\uD83D\\uDE1E","\\uD83D\\uDE10","\\uD83D\\uDE42","\\uD83D\\uDE0A"];
+  for (var i=0;i<subjects.length;i++) {
+    var sub = subjects[i];
+    var val = todayReview ? (todayReview[sub.id] || 0) : 0;
+    var stars = "";
+    for (var j=0;j<emojis.length;j++) {
+      var cls = val === j+1 ? "emoji-btn active" : "emoji-btn";
+      stars += "<span class=\\"" + cls + "\\" onclick=\\"setRating('" + todayKey + "','" + sub.id + "'," + (j+1) + ")\\">" + emojis[j] + "</span>";
+    }
+    html += "<div class=\\"review-item\\"><span style=\\"font-size:14px\\">" + sub.name + "</span><div class=\\"review-rating\\">" + stars + "</div></div>";
+  }
+  var hours = todayReview ? (todayReview.hours || 0) : 0;
+  html += "<div class=\\"review-item\\"><span style=\\"font-size:14px\\">今日学习时长</span><div style=\\"display:flex;align-items:center;gap:8px\\"><button class=\\"btn-icon\\" onclick=\\"adjHours(-0.5)\\">-</button><span style=\\"font-size:16px;font-weight:600;min-width:40px;text-align:center\\">" + hours + "h</span><button class=\\"btn-icon\\" onclick=\\"adjHours(0.5)\\">+</button></div></div>";
+  var summary = todayReview ? (todayReview.summary || "") : "";
+  html += "<div style=\\"margin-top:12px\\"><div style=\\"font-size:13px;color:var(--gray-500);margin-bottom:4px\\">今日学习小结</div><textarea class=\\"notes-area\\" id=\\"dailyNotes\\" style=\\"min-height:50px\\" placeholder=\\"今天学了什么？有什么收获？\\">" + summary + "</textarea></div><button class=\\"btn-primary\\" style=\\"margin-top:8px\\" onclick=\\"saveDailyReview()\\">保存今日回顾</button>";
+  document.getElementById("dailyReview").innerHTML = html;
+  renderWeekStats();
+}
+function renderWeekStats() {
+  var weekData = [];
+  var today = new Date();
+  for (var i=6;i>=0;i--) {
+    var d = new Date(today);
+    d.setDate(d.getDate() - i);
+    var key = d.toISOString().split("T")[0];
+    var r = null;
+    for (var k=0;k<state.reviews.length;k++) {if (state.reviews[k].date === key) { r = state.reviews[k]; break; }}
+    var dayLabel = d.toLocaleDateString("zh-CN", {weekday:"short"});
+    var hrs = r ? (r.hours || 0) : 0;
+    var status = r ? [r.politics,r.english,r.psych347].filter(Boolean).length : 0;
+    weekData.push({day:dayLabel, hours:hrs, status:status});
+  }
+  var html = "<div class=\\"week-chart\\">";
+  for (var i=0;i<weekData.length;i++) {
+    var d = weekData[i];
+    var barH = Math.min(d.hours/8*100, 100);
+    html += "<div class=\\"week-bar-wrap\\"><div class=\\"week-bar-label\\">" + d.day + "</div><div class=\\"week-bar-graph\\"><div class=\\"week-bar-fill\\" style=\\"height:" + barH + "%\\"></div></div><div class=\\"week-bar-hours\\">" + d.hours + "h</div><div class=\\"week-bar-subjects\\">" + d.status + "/3</div></div>";
+  }
+  var totalHours = 0;
+  for (var i=0;i<weekData.length;i++) totalHours += weekData[i].hours;
+  html += "</div><div style=\\"font-size:12px;color:var(--gray-500);margin-top:8px;text-align:center\\">本周总学习：" + totalHours + "h</div>";
+  document.getElementById("weekStats").innerHTML = html;
+}
+function setRating(dateKey, subject, rating) {
+  var r = null;
+  for (var i=0;i<state.reviews.length;i++) {if (state.reviews[i].date === dateKey) { r = state.reviews[i]; break; }}
+  if (!r) {
+    r = {date:dateKey, politics:0, english:0, psych347:0, hours:0, summary:""};
+    state.reviews.push(r);
+  }
+  r[subject] = rating;
+  saveState();
+  renderReview();
+}
+function adjHours(delta) {
+  var todayKey = new Date().toISOString().split("T")[0];
+  var r = null;
+  for (var i=0;i<state.reviews.length;i++) {if (state.reviews[i].date === todayKey) { r = state.reviews[i]; break; }}
+  if (!r) {
+    r = {date:todayKey, politics:0, english:0, psych347:0, hours:0, summary:""};
+    state.reviews.push(r);
+  }
+  r.hours = Math.max(0, Math.round((r.hours + delta) * 10) / 10);
+  saveState();
+  renderReview();
+}
+function saveDailyReview() {
+  var todayKey = new Date().toISOString().split("T")[0];
+  var r = null;
+  for (var i=0;i<state.reviews.length;i++) {if (state.reviews[i].date === todayKey) { r = state.reviews[i]; break; }}
+  if (!r) {
+    r = {date:todayKey, politics:0, english:0, psych347:0, hours:0, summary:""};
+    state.reviews.push(r);
+  }
+  r.summary = document.getElementById("dailyNotes").value;
+  saveState();
+}
+document.addEventListener("input", function(e) {
+  if (e.target && e.target.id === "notesArea") {
+    state.notes = e.target.value;
+    saveState();
+  }
+});
+function resetAll() {
+  if (confirm("确定要重置所有学习进度吗？（每日回顾数据会保留）")) {
+    for (var i=0;i<PHASES.length;i++) {for (var j=0;j<PHASES[i].tasks.length;j++) {state.tasks[PHASES[i].tasks[j].id] = false;}}
+    state.notes = "";
+    saveState();
+    renderPlan();
+    renderProgress();
+  }
+}
+(function(){
+  var btns = document.querySelectorAll(".tab-btn");
+  for (var i=0;i<btns.length;i++) {
+    btns[i].addEventListener("click", function() {
+      var btns2 = document.querySelectorAll(".tab-btn");
+      for (var k=0;k<btns2.length;k++) btns2[k].classList.remove("active");
+      var secs = document.querySelectorAll(".section");
+      for (var k=0;k<secs.length;k++) secs[k].classList.remove("active");
+      this.classList.add("active");
+      document.getElementById("tab-" + this.dataset.tab).classList.add("active");
+      if (this.dataset.tab === "review") renderReview();
+      if (this.dataset.tab === "progress") renderProgress();
+      if (this.dataset.tab === "plan") renderPlan();
+    });
+  }
+  state = loadState();
+  updateCountdown();
+  renderPlan();
+})();
+</script>
+</body></html>
+'''
+
+with open(r'C:\Users\Charles\Documents\Psychology\study-planner\index.html', 'w', encoding='utf-8') as f:
+    f.write(html)
+print('OK: written ' + str(len(html.encode('utf-8'))) + ' bytes')
