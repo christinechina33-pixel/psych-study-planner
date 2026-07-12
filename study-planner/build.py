@@ -63,6 +63,28 @@ def write_html():
     parts.append('.btn-reset{display:block;width:100%;padding:10px;background:var(--gray-100);border:none;border-radius:8px;color:var(--gray-500);font-size:13px;cursor:pointer;margin-top:8px}')
     parts.append('.notes-area{width:100%;border:1px solid var(--gray-200);border-radius:8px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;min-height:60px;margin-top:8px;outline:none}')
     parts.append('.notes-area:focus{border-color:var(--primary)}')
+    parts.append(".knowledge-subject{margin-bottom:16px}")
+    parts.append(".knowledge-subject-header{background:var(--primary);color:white;padding:12px 16px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center}")
+    parts.append(".knowledge-subject-header .arrow{transition:transform 0.3s;font-size:12px}")
+    parts.append(".knowledge-subject-header .arrow.open{transform:rotate(90deg)}")
+    parts.append(".knowledge-chapter{border:1px solid var(--gray-200);border-radius:8px;margin:6px 0 6px 12px;overflow:hidden}")
+    parts.append(".knowledge-chapter-header{background:var(--gray-50);padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:var(--gray-700)}")
+    parts.append(".knowledge-chapter-header .arrow{transition:transform 0.3s;font-size:12px}")
+    parts.append(".knowledge-chapter-header .arrow.open{transform:rotate(90deg)}")
+    parts.append(".knowledge-body{padding:10px 14px;display:none;background:white}")
+    parts.append(".knowledge-body.open{display:block}")
+    parts.append(".knowledge-point{background:var(--gray-50);border-left:3px solid var(--primary);padding:10px 12px;margin-bottom:8px;border-radius:0 6px 6px 0}")
+    parts.append(".knowledge-point-title{font-size:13px;font-weight:600;color:var(--gray-900);margin-bottom:4px}")
+    parts.append(".knowledge-point-method{font-size:12px;color:var(--gray-500);line-height:1.7}")
+    parts.append(".knowledge-point-method strong{color:var(--primary)}")
+    parts.append(".knowledge-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-right:4px}")
+    parts.append(".knowledge-tag-key{background:#FEF3C7;color:#92400E}")
+    parts.append(".knowledge-tag-hard{background:#FEE2E2;color:#991B1B}")
+    parts.append(".knowledge-tag-easy{background:#D1FAE5;color:#065F46}")
+    parts.append(".search-box{width:100%;padding:10px 14px;border:1px solid var(--gray-200);border-radius:8px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px}")
+    parts.append(".search-box:focus{border-color:var(--primary)}")
+    parts.append(".mastery-star{cursor:pointer;color:#ddd;transition:color 0.2s}")
+    parts.append(".mastery-star.active{color:#F59E0B}")
     parts.append('</style></head><body>')
     
     parts.append('<div class="app-header">')
@@ -76,6 +98,7 @@ def write_html():
     parts.append('<button class="tab-btn" data-tab="progress">进度追踪</button>')
     parts.append('<button class="tab-btn" data-tab="review">学习回顾</button>')
     parts.append('<button class="tab-btn" data-tab="info">考试信息</button>')
+    parts.append('<button class="tab-btn" data-tab="knowledge">📚 知识体系</button>')
     parts.append('</div>')
     
     parts.append('<div class="content">')
@@ -107,6 +130,13 @@ def write_html():
     parts.append('<div class="card"><div class="card-title">347参考书目</div><ul class="resource-list"><li><span class="book-title">《心理学导论》第三版</span><br><span class="book-author">黄希庭 著，人民教育出版社，2015</span></li><li><span class="book-title">《发展心理学》第三版</span><br><span class="book-author">林崇德 著，人民教育出版社，2018</span></li><li><span class="book-title">《心理与教育研究方法》第二版</span><br><span class="book-author">董奇 著，北京师范大学出版社，2019</span></li></ul></div>')
     parts.append('<div class="card"><div class="card-title">研究方向</div><ul class="resource-list"><li>心理健康与大数据应用</li><li>临床与咨询心理</li><li>人机交互与用户体验</li></ul></div>')
     parts.append('<div class="card"><div class="card-title">重要链接</div><ul class="resource-list"><li><a href="https://yz.swjtu.edu.cn" target="_blank" style="color:var(--primary);text-decoration:none">西南交大研究生招生网</a></li><li><a href="https://yz.chsi.com.cn" target="_blank" style="color:var(--primary);text-decoration:none">中国研究生招生信息网</a></li></ul></div>')
+    parts.append('</div>')
+    parts.append('</div>')
+    parts.append('</div>')
+    # Tab 5: Knowledge System
+    parts.append('<div class="section" id="tab-knowledge">')
+    parts.append('<input class="search-box" id="knowledgeSearch" placeholder="🔍 搜索知识点..." oninput="renderKnowledge()">')
+    parts.append('<div id="knowledgeContent"></div>')
     parts.append('</div>')
     parts.append('</div>')
     parts.append('<div class="save-indicator" id="saveIndicator">已自动保存</div>')
@@ -153,7 +183,7 @@ var PHASES = [
 var state = null;
 
 function getDefaultState() {
-  var s = {tasks:{},notes:"",reviews:[]};
+  var s = {tasks:{},notes:"",reviews:[],knowledge:{}};
   for (var i=0;i<PHASES.length;i++) {
     for (var j=0;j<PHASES[i].tasks.length;j++) {
       s.tasks[PHASES[i].tasks[j].id] = false;
@@ -413,13 +443,213 @@ function resetAll() {
       if (this.dataset.tab === "review") renderReview();
       if (this.dataset.tab === "progress") renderProgress();
       if (this.dataset.tab === "plan") renderPlan();
+      if (this.dataset.tab === "knowledge") renderKnowledge();
     });
   }
   
   state = loadState();
+  if (!state.knowledge) state.knowledge = {};
   updateCountdown();
   renderPlan();
 })();
+// ========== Knowledge System Data ==========
+var KNOWLEDGE_DATA = {
+  politics: {
+    name: "101 思想政治理论",
+    chapters: [
+      {name: "马克思主义基本原理", points: [
+        {title: "唯物论：物质与意识的辩证关系", method: "背诵核心原理+做选择题巩固。重点关注：物质决定意识、意识反作用于物质", tag: "key"},
+        {title: "对立统一规律（辩证法核心）", method: "理解矛盾分析法，做历年真题选择题。难点：矛盾的普遍性与特殊性", tag: "hard"},
+        {title: "认识论：实践与认识的关系", method: "结合案例理解实践是认识的基础、检验真理的唯一标准", tag: "key"},
+        {title: "小组拼音观：社会存在与社会意识", method: "对比记忆历史唯物主义与历史唯心主义的区别", tag: "easy"}
+      ]},
+      {name: "毛泽东思想和中国特色社会主义理论体系", points: [
+        {title: "毛泽东思想活的灵魂", method: "三个基本方面：实事求是、群众路线、独立自主。对比记忆", tag: "key"},
+        {title: "邓小平理论：社会主义本质", method: "解放生产力，发展生产力，消灭剥削，消除两极分化，最终达到共同富裕", tag: "key"},
+        {title: "科学发展观 & 习近平新时代中国特色社会主义思想", method: "理解新发展理念、五位一体、四个全面。关注时政结合", tag: "hard"}
+      ]},
+      {name: "中国近现代史纲要", points: [
+        {title: "近代中国社会性质与主要矛盾", method: "半殖民地半封建社会的特点，两大历史任务", tag: "key"},
+        {title: "五四运动与中国共产党的诞生", method: "时间线梳理：1919五四→1921建党→重大事件时间轴", tag: "easy"},
+        {title: "抗日战争与解放战争", method: "关键战役、统一战线、三大战役的顺序和意义", tag: "hard"},
+        {title: "社会主义革命与建设时期", method: "从新民主主义到社会主义的过渡，三大改造", tag: "key"}
+      ]},
+      {name: "思想道德修养与法律基础", points: [
+        {title: "人生观与价值观", method: "理解个人价值与社会价值的统一，做选择题为主", tag: "easy"},
+        {title: "道德规范：社会公德、职业道德、家庭美德", method: "背诵核心规范条款，结合案例选择题", tag: "key"},
+        {title: "法治与宪法", method: "重点：宪法的地位和基本原则、公民基本权利和义务", tag: "key"}
+      ]}
+    ]
+  },
+  english: {
+    name: "204 英语（二）",
+    chapters: [
+      {name: "词汇与语法基础", points: [
+        {title: "考研核心词汇（约5500词）", method: "每天100词，利用墨墨背单词/不背单词，先核心词再超纲词。艾宾浩斯遗忘曲线复习", tag: "key"},
+        {title: "长难句分析：定语从句、名词性从句", method: "田静/何凯文长难句：每天5句，先断句再翻译。掌握从句引导词", tag: "hard"},
+        {title: "长难句分析：状语从句、非谓语动词", method: "区分三大非谓语动词（doing/done/to do）的语法功能", tag: "hard"}
+      ]},
+      {name: "阅读理解（Part A）", points: [
+        {title: "主旨大意题", method: "关注首段、尾段及每段首句。干扰项：以偏概全、过度推断", tag: "key"},
+        {title: "细节理解题", method: "定位原文同义替换。注意绝对化选项（all/never/must）通常为错", tag: "key"},
+        {title: "推理判断题", method: "排除法：与原文一致的不选（那是细节题），需推理一步", tag: "hard"},
+        {title: "词义猜测题 & 观点态度题", method: "利用上下文逻辑关系推测词义，识别褒贱义词", tag: "easy"}
+      ]},
+      {name: "完形填空 & 新题型", points: [
+        {title: "完形填空：上下文逻辑关系", method: "先通读全文把握大意，再填空。重点关注：转折(but/yet)、因果(because/so)、并列(and/or)", tag: "hard"},
+        {title: "新题型：信息匹配/小标题", method: "抓段落主题句（首句/末句），匹配关键词", tag: "easy"}
+      ]},
+      {name: "翻译 & 写作", points: [
+        {title: "翻译技巧：拆分长句", method: "遇到长句先拆分意群，分别翻译后再组合。保证中文通顺", tag: "hard"},
+        {title: "小作文：书信、通知、备忘录", method: "背诵每种格式模板各1篇，注意称呼和结尾格式", tag: "key"},
+        {title: "大作文：图表作文", method: "准备数据描述模板，背诵常用句式和高级替换词", tag: "key"}
+      ]}
+    ]
+  },
+  psych347: {
+    name: "347 心理学专业综合",
+    chapters: [
+      {name: "心理学导论（黄希庭）", points: [
+        {title: "心理学的历史与流派", method: "背诵：构造主义、机能主义、行为主义、格式塔、精神分析、人本主义、认知心理学。每个流派的代表人物+核心观点+研究方法", tag: "key"},
+        {title: "感觉与知觉", method: "理解：感觉阈限、韦伯定律、信号检测论。知觉特性（选择性/整体性/理解性/恒常性）", tag: "hard"},
+        {title: "意识与注意", method: "注意的种类（不随意/随意/习惯性），注意理论（过滤器/衰减/资源分配）", tag: "key"},
+        {title: "记忆", method: "记忆三阶段模型，艾宾浩斯遗忘曲线，记忆策略（复述/精细加工/组织编码）", tag: "key"},
+        {title: "情绪与动机", method: "情绪理论（詹姆斯-兰格/坎农-巴德/沙赫特-辛格），马斯洛需要层次理论", tag: "key"},
+        {title: "人格与学习理论", method: "特质理论（奥尔波特/卡特尔/大五人格），精神分析人格结构，经典条件反射、操作性条件反射、观察学习", tag: "key"}
+      ]},
+      {name: "发展心理学（林崇德）", points: [
+        {title: "皮亚杰的认知发展理论", method: "核心：同化-顺应-平衡。四阶段（感知运动/前运算/具体运算/形式运算）", tag: "key"},
+        {title: "维果茨基文化历史理论 & 依恋理论", method: "最近发展区、脚手架、安全/回避/矛盾/混乱型依恋", tag: "key"},
+        {title: "埃里克森人格发展八阶段", method: "每阶段的心理社会危机、年龄范围、发展结果。口诀记忆", tag: "hard"},
+        {title: "青少年期与成年期心理发展", method: "自我同一性（马西亚四种状态），流体/晶体智力", tag: "easy"}
+      ]},
+      {name: "心理与教育研究方法（董奇）", points: [
+        {title: "研究设计与实验设计", method: "实验法/准实验法/相关研究/描述研究，自变量与因变量、混淆变量控制", tag: "hard"},
+        {title: "信度与效度", method: "信度类型（重测/复本/分半/评分者），效度类型（内容/效标/构念）", tag: "key"},
+        {title: "心理测量与统计分析", method: "了解SCL-90、SDS、SAS、EPQ、MMPI等常用量表，描述统计与推断统计基础", tag: "key"},
+        {title: "研究报告撰写", method: "IMRAD结构（引言/方法/结果/讨论），APA格式", tag: "easy"}
+      ]}
+    ]
+  }
+};
+
+function renderKnowledge() {
+  var container = document.getElementById("knowledgeContent");
+  if (!container) return;
+  var search = (document.getElementById("knowledgeSearch").value || "").toLowerCase();
+  var html = "";
+  var subjects = ["politics", "english", "psych347"];
+  var subjectLabels = {politics:"101 思想政治理论", english:"204 英语（二）", psych347:"347 心理学专业综合"};
+  var subjectIcons = {politics:"📘", english:"📗", psych347:"📕"};
+  
+  for (var si = 0; si < subjects.length; si++) {
+    var sk = subjects[si];
+    var sd = KNOWLEDGE_DATA[sk];
+    var chapters = sd.chapters;
+    var subjectHtml = "";
+    var hasAnyMatch = false;
+    
+    for (var ci = 0; ci < chapters.length; ci++) {
+      var ch = chapters[ci];
+      var points = ch.points;
+      var pointsHtml = "";
+      var hasChapterMatch = false;
+      
+      for (var pi = 0; pi < points.length; pi++) {
+        var pt = points[pi];
+        if (search && pt.title.toLowerCase().indexOf(search) === -1 && pt.method.toLowerCase().indexOf(search) === -1 && ch.name.toLowerCase().indexOf(search) === -1) {
+          continue;
+        }
+        hasChapterMatch = true;
+        hasAnyMatch = true;
+        
+        var tagHtml = "";
+        if (pt.tag === "key") tagHtml = "<span class=\"knowledge-tag knowledge-tag-key\">⭐ 重点</span>";
+        else if (pt.tag === "hard") tagHtml = "<span class=\"knowledge-tag knowledge-tag-hard\">🔥 难点</span>";
+        else if (pt.tag === "easy") tagHtml = "<span class=\"knowledge-tag knowledge-tag-easy\">✅ 了解</span>";
+        
+        var key = "km_" + sk + "_" + ci + "_" + pi;
+        var mastery = state.knowledge[key] || 0;
+        var stars = "";
+        for (var s = 1; s <= 3; s++) {
+          var cls = s <= mastery ? "active" : "";
+          stars += "<span class=\"mastery-star " + cls + "\" onclick=\"setMastery(\\'" + sk + "\\'," + ci + "," + pi + "," + s + ")\">★</span>";
+        }
+        
+        pointsHtml += "<div class=\"knowledge-point\">"
+          + "<div style=\"display:flex;justify-content:space-between;align-items:center\">"
+          + "<div class=\"knowledge-point-title\">" + pt.title + " " + tagHtml + "</div>"
+          + "<div style=\"display:flex;gap:2px;font-size:14px;color:#ddd\">" + stars + "</div>"
+          + "</div>"
+          + "<div class=\"knowledge-point-method\"><strong>📖 掌握方法：</strong>" + pt.method + "</div>"
+          + "</div>";
+      }
+      
+      if (pointsHtml && hasChapterMatch) {
+        subjectHtml += "<div class=\"knowledge-chapter\">"
+          + "<div class=\"knowledge-chapter-header\" onclick=\"toggleChapter(this)\">"
+          + ch.name
+          + "<span class=\"arrow\">▶</span>"
+          + "</div>"
+          + "<div class=\"knowledge-body open\">"
+          + pointsHtml
+          + "</div>"
+          + "</div>";
+      }
+    }
+    
+    if (subjectHtml && hasAnyMatch) {
+      html += "<div class=\"knowledge-subject\">"
+        + "<div class=\"knowledge-subject-header\" onclick=\"toggleSubject(this)\">"
+        + "<span>" + subjectIcons[sk] + " " + subjectLabels[sk] + "</span>"
+        + "<span class=\"arrow open\">▶</span>"
+        + "</div>"
+        + subjectHtml
+        + "</div>";
+    }
+  }
+  
+  if (!html) {
+    html = "<div style=\"text-align:center;padding:40px;color:var(--gray-500)\">没有找到匹配的知识点，试试其他关键词</div>";
+  }
+  
+  container.innerHTML = html;
+}
+
+function toggleSubject(el) {
+  var arrow = el.querySelector(".arrow");
+  var parent = el.parentElement;
+  var chapters = parent.querySelectorAll(".knowledge-chapter");
+  var isOpen = arrow.classList.contains("open");
+  if (isOpen) {
+    arrow.classList.remove("open");
+    for (var i = 0; i < chapters.length; i++) chapters[i].style.display = "none";
+  } else {
+    arrow.classList.add("open");
+    for (var i = 0; i < chapters.length; i++) chapters[i].style.display = "";
+  }
+}
+
+function toggleChapter(el) {
+  var arrow = el.querySelector(".arrow");
+  var body = el.nextElementSibling;
+  if (body && body.classList.contains("knowledge-body")) {
+    body.classList.toggle("open");
+    arrow.classList.toggle("open");
+  }
+}
+
+function setMastery(subject, ci, pi, level) {
+  var key = "km_" + subject + "_" + ci + "_" + pi;
+  if (state.knowledge[key] === level) {
+    state.knowledge[key] = 0;
+  } else {
+    state.knowledge[key] = level;
+  }
+  saveState();
+  renderKnowledge();
+}
+
 </script>'''
     
     parts.append(js)
